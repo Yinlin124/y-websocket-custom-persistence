@@ -68,7 +68,8 @@
     "standard": "^17.1.2",
     "typescript": "^5.8.3",
     "ws": "^6.2.1",
-    "yjs": "^14.0.0-7"
+    "yjs": "^14.0.0-7",
+    "mongodb": "^6.0.0"
   },
   "peerDependencies": {
     "yjs": "^14.0.0-7"

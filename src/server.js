@@ -3,7 +3,8 @@
 import WebSocket from 'ws'
 import http from 'http'
 import * as number from 'lib0/number'
-import { setupWSConnection } from './utils.js'
+import { setPersistence, setupWSConnection } from './utils.js'
+import CustomPersistence from './custom-persistence.js'
 
 const wss = new WebSocket.Server({ noServer: true })
 const host = process.env.HOST || 'localhost'
@@ -28,4 +29,13 @@ server.on('upgrade', (request, socket, head) => {
 
 server.listen(port, host, () => {
   console.log(`running at '${host}' on port ${port}`)
+})
+
+// 新增自定义持久化
+const customPersistence = new CustomPersistence()
+setPersistence(customPersistence)
+
+process.on('SIGINT', async () => {
+  await customPersistence.close?.()
+  process.exit(0)
 })

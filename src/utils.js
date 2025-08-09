@@ -24,13 +24,13 @@ const wsReadyStateClosed = 3 // eslint-disable-line
 const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0'
 // const persistenceDir = process.env.YPERSISTENCE
 /**
- * @type {{bindState: function(string,WSSharedDoc):void, writeState:function(string,WSSharedDoc):Promise<any>, provider: any}|null}
+ * @type {{bindState: function(string,WSSharedDoc):void, writeState:function(string,WSSharedDoc):Promise<any>}|null}
  */
 let persistence = null
 
 /**
  * @param {{bindState: function(string,WSSharedDoc):void,
- * writeState:function(string,WSSharedDoc):Promise<any>,provider:any}|null} persistence_
+ * writeState:function(string,WSSharedDoc):Promise<any>}|null} persistence_
  */
 export const setPersistence = persistence_ => {
   persistence = persistence_
