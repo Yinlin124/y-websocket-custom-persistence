@@ -1,81 +1,74 @@
+# y-websocket-server 自定义持久化
 
-# y-websocket-server :tophat:
-> Simple backend for [y-websocket](https://github.com/yjs/y-websocket)
+## 部署方式
 
-The Websocket Provider is a solid choice if you want a central source that
-handles authentication and authorization. Websockets also send header
-information and cookies, so you can use existing authentication mechanisms with
-this server.
+### 方式一：本地开发部署
 
-## Quick Start
+1. 确保本地已安装 MongoDB 并启动
+2. 复制 [`.env.example`](.env.example) 为 `.env` 并配置环境变量
+3. 安装依赖并启动：
 
-### Install dependencies
-
-```sh
-npm i @y/websocket-server
+```bash
+cp .env.example .env
+npm install
+npm start
 ```
 
-### Start a y-websocket server
+### 方式二：Docker 容器化部署
 
-This repository implements a basic server that you can adopt to your specific use-case. [(source code)](./src/)
+使用 Docker Compose 一键启动（包含 MongoDB）：
 
-Start a y-websocket server:
-
-```sh
-HOST=localhost PORT=1234 npx y-websocket
+```bash
+cp .env.example .env
+docker compose up --build
 ```
 
-### Client Code:
+## 环境变量说明
+
+- `MONGODB_URL`: MongoDB 连接字符串
+- `MONGODB_DB`: 数据库名称
+- `MONGODB_COLLECTION`: 集合名称
+- `HOST`: 服务监听地址
+- `PORT`: 服务端口
+
+## 开发指南
+
+### 自定义持久化开发
+
+项目使用 [`CustomPersistence`](src/custom-persistence.js) 类实现 MongoDB 持久化。实现 [`CustomPersistence`](src/custom-persistence.js) 需要实现以下方法：
 
 ```js
-import * as Y from 'yjs'
-import { WebsocketProvider } from 'y-websocket'
+export default class CustomPersistence{
+  async bindState(docName, ydoc) {
+    // 将数据从 MongoDB 加载到 ydoc
+  }
 
-const doc = new Y.Doc()
-const wsProvider = new WebsocketProvider('ws://localhost:1234', 'my-roomname', doc)
+  async writeState(docName, ydoc) {
+    // 将数据从 ydoc 保存到 MongoDB
+  }
 
-wsProvider.on('status', event => {
-  console.log(event.status) // logs "connected" or "disconnected"
-})
+}
 ```
 
-## Websocket Server
+主要操作文档的 `Yjs` API
 
-Start a y-websocket server:
+```js
+import * as Y from "yjs";
 
-```sh
-HOST=localhost PORT=1234 npx y-websocket
+Y.applyUpdate(ydoc, update); // 将 update 应用到 ydoc
+Y.encodeStateAsUpdate(ydoc); // 将 ydoc 编码为 update
 ```
 
-Since npm symlinks the `y-websocket` executable from your local `./node_modules/.bin` folder, you can simply run npx. The `PORT` environment variable already defaults to 1234, and `HOST` defaults to `localhost`.
-
-### Websocket Server with Persistence
-
-Persist document updates in a LevelDB database.
-
-See [LevelDB Persistence](https://github.com/yjs/y-leveldb) for more info.
-
-```sh
-HOST=localhost PORT=1234 YPERSISTENCE=./dbDir npx y-websocket
+[绑定自定义持久化类](src/server.js#L30)
+```js
+const customPersistence = new CustomPersistence()
+setPersistence(customPersistence)
 ```
-
-### Websocket Server with HTTP callback
-
-Send a debounced callback to an HTTP server (`POST`) on document update. Note that this implementation doesn't implement a retry logic in case the `CALLBACK_URL` does not work.
-
-Can take the following ENV variables:
-
-* `CALLBACK_URL` : Callback server URL
-* `CALLBACK_DEBOUNCE_WAIT` : Debounce time between callbacks (in ms). Defaults to 2000 ms
-* `CALLBACK_DEBOUNCE_MAXWAIT` : Maximum time to wait before callback. Defaults to 10 seconds
-* `CALLBACK_TIMEOUT` : Timeout for the HTTP call. Defaults to 5 seconds
-* `CALLBACK_OBJECTS` : JSON of shared objects to get data (`'{"SHARED_OBJECT_NAME":"SHARED_OBJECT_TYPE}'`)
-
-```sh
-CALLBACK_URL=http://localhost:3000/ CALLBACK_OBJECTS='{"prosemirror":"XmlFragment"}' npm start
-```
-This sends a debounced callback to `localhost:3000` 2 seconds after receiving an update (default `DEBOUNCE_WAIT`) with the data of an XmlFragment named `"prosemirror"` in the body.
-
-## License
-
-[The MIT License](./LICENSE) © Kevin Jahns
+你可以将 mongodb 改成其他的持久化方式，比如 mysql、redis 等。或选择已有的框架：
+* [@y/websocket-server](https://github.com/yjs/y-websocket-server/)
+* hocuspocus
+- y-sweet
+- y-redis
+- ypy-websocket
+- pycrdt-websocket
+- [yrs-warp](https://github.com/y-crdt/yrs-warp)
